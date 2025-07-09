@@ -15,7 +15,7 @@ if [ -f /etc/hi ]; then
         case "$val_lower" in true|false) PYTHON_TRUTH=$val_lc ;; esac
         ;;
       FORCE_OS_USER)
-        val_lc=$(echo "$value" | tr '[:upper:]' '[:lower:]')
+        val_lower=$(echo "$value" | tr '[:upper:]' '[:lower:]')
         case "$val_lower" in false|os|hi) FORCE_OS_USER=$val_lc ;; esac
         ;;
     esac
