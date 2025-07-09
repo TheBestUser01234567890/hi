@@ -12,11 +12,11 @@ if [ -f /etc/hi ]; then
     case "$key" in
       PYTHON_TRUTH)
         val_lower=$(echo "$value" | tr '[:upper:]' '[:lower:]')
-        case "$val_lower" in true|false) PYTHON_TRUTH=$val_lc ;; esac
+        case "$val_lower" in true|false) PYTHON_TRUTH=$val_lower ;; esac
         ;;
       FORCE_OS_USER)
         val_lower=$(echo "$value" | tr '[:upper:]' '[:lower:]')
-        case "$val_lower" in false|os|hi) FORCE_OS_USER=$val_lc ;; esac
+        case "$val_lower" in false|os|hi) FORCE_OS_USER=$val_lower ;; esac
         ;;
     esac
   done < /etc/hi
