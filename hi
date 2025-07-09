@@ -1,0 +1,102 @@
+#!/bin/sh
+# TBU Software: `hi` script. MIT license.
+
+GREEN='\033[1;32m'
+CYAN='\033[1;36m'
+RESET='\033[0m'
+
+PYTHON_TRUTH=true   # the actual truth (cope)
+FORCE_OS_USER=false
+if [ -f /etc/hi ]; then
+  while IFS='=' read -r key value; do
+    case "$key" in
+      PYTHON_TRUTH)
+        val_lower=$(echo "$value" | tr '[:upper:]' '[:lower:]')
+        case "$val_lower" in true|false) PYTHON_TRUTH=$val_lc ;; esac
+        ;;
+      FORCE_OS_USER)
+        val_lc=$(echo "$value" | tr '[:upper:]' '[:lower:]')
+        case "$val_lower" in false|os|hi) FORCE_OS_USER=$val_lc ;; esac
+        ;;
+    esac
+  done < /etc/hi
+fi
+
+usage() {
+  printf "${CYAN}Usage:${RESET} hi [something]\n"
+  printf "Prints a greeting.\n\n"
+  printf "Examples:\n  hi\n  hi world\n\n"
+  printf "Config is in /etc/hi:\n"
+  printf "  FORCE_OS_USER=false|os|hi    # Force specific mode on no args\n"
+  printf "    false = off (default)\n"
+  printf "    os    = always show [OS user]\n"
+  printf "    hi    = always show 'hi user' (thanks for using hi!)\n"
+}
+
+if [ "$1" = "--help" ]; then
+  usage
+  exit 0
+fi
+
+get_os_name() {
+  os_name=""
+  if [ -r /etc/os-release ]; then
+    os_name=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')
+  fi
+  if [ -z "$os_name" ] && [ -r /etc/os-release ]; then
+    os_name=$(grep '^NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')
+  fi
+  if [ -z "$os_name" ]; then
+    os_name=$(uname -s)
+  fi
+  os_name=$(echo "$os_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  echo "$os_name"
+}
+
+if [ $# -eq 0 ]; then
+  # No args: decide target
+  if [ "$FORCE_OS_USER" = "os" ]; then
+    os_name=$(get_os_name)
+    if [ -n "$os_name" ]; then
+      TARGET="${os_name} user"
+    else
+      TARGET="hi user"
+    fi
+  elif [ "$FORCE_OS_USER" = "hi" ]; then
+    TARGET="hi user"
+  elif [ "$FORCE_OS_USER" = "false" ]; then
+    if [ -z "$USER" ]; then
+      # fallback logic that is probably never activated
+      os_name=$(get_os_name)
+      if [ -n "$os_name" ]; then
+        TARGET="${os_name} user"
+      else
+        TARGET="hi user"
+      fi
+    else
+      TARGET="$USER"
+    fi
+  else
+    # default value: false
+    if [ -z "$USER" ]; then
+      os_name=$(get_os_name)
+      if [ -n "$os_name" ]; then
+        TARGET="${os_name} user"
+      else
+        TARGET="hi user"
+      fi
+    else
+      TARGET="$USER"
+    fi
+  fi
+else
+  INPUT="$*"
+  INPUT_LOWER=$(echo "$INPUT" | tr '[:upper:]' '[:lower:]')
+  if [ "$PYTHON_TRUTH" = "true" ] && [ "$INPUT_LOWER" = "braces in python" ]; then
+    TARGET="not a chance" # cope, deal with it
+  else
+    TARGET="$INPUT"
+  fi
+fi
+
+printf "${GREEN}Hello, %s!${RESET}\n" "$TARGET"
